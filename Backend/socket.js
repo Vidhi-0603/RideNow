@@ -7,7 +7,7 @@ let io;
 export const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: process.env.FRONTEND_URL,
       methods: ["GET", "POST"],
     },
   });
