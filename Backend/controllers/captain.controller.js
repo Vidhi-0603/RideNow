@@ -10,16 +10,8 @@ export const registerCaptain = async (req, res, next) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const {
-    firstname,
-    lastname,
-    email,
-    password,
-    color,
-    plate,
-    capacity,
-    type
-  } = req.body;
+  const { firstname, lastname, email, password, color, plate, capacity, type } =
+    req.body;
 
   const captainExists = await captainModel.findOne({ email });
   if (captainExists) {
@@ -39,7 +31,9 @@ export const registerCaptain = async (req, res, next) => {
   );
   const token = captain.generateAuthToken();
   res.cookie("accessToken", token, cookieOptions);
-  res.status(201).json({ message: "register done", token, captain, role:"captain" });
+  res
+    .status(201)
+    .json({ message: "register done", token, captain, role: "captain" });
 };
 
 export const loginCaptain = async (req, res, next) => {
@@ -60,22 +54,25 @@ export const loginCaptain = async (req, res, next) => {
 
   const token = captain.generateAuthToken();
   res.cookie("accessToken", token, cookieOptions);
-  res.status(200).json({ message: "login done", token, captain, role:"captain" });
+  res
+    .status(200)
+    .json({ message: "login done", token, captain, role: "captain" });
 };
 
 export const getCaptainProfile = async (req, res, next) => {
-    res.status(200).json({ message: "Profile is: ",captain: req.captain, role: req.role });
-}
-
+  res
+    .status(200)
+    .json({ message: "Profile is: ", captain: req.captain, role: req.role });
+};
 
 export const logoutCaptain = async (req, res, next) => {
-  res.clearCookie('accessToken');
+  res.clearCookie("accessToken");
   const { accessToken } = req.cookies;
-   
+
   const newToken = new blacListTokenModel({
-    token: accessToken
-  })
+    token: accessToken,
+  });
   await newToken.save();
 
-  res.status(200).json({ message: 'Logged out captain!' });
-}
+  res.status(200).json({ message: "Logged out captain!" });
+};

@@ -7,7 +7,6 @@ import {
   startRideService,
 } from "../services/ride.service.js";
 import {
-  getAddressCoordinates,
   getCaptainsInTheRadius,
 } from "../services/maps.service.js";
 import { sendMessageToSocketId } from "../socket.js";
@@ -19,7 +18,15 @@ export const createRide = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { pickup, destination, vehicleType } = req.body;
+  const { pickup, destination, vehicleType, pickupCoords, destinationCoords } = req.body;
+  console.log(
+    pickup,
+    destination,
+    vehicleType,
+    pickupCoords,
+    destinationCoords,
+    "ride details in create ride backend..."
+  );
 
   try {
     const ride = await createRideService({
@@ -27,20 +34,25 @@ export const createRide = async (req, res) => {
       pickup,
       destination,
       vehicleType,
+      pickupCoords,
+      destinationCoords,
     });
 
-    const pickupCoordinates = await getAddressCoordinates(pickup);
-    if (!pickupCoordinates) {
-      throw new Error("couldn't get pickup coordinates");
+    console.log(ride,"from controller backend...");
+    
+    if (!pickupCoords) {
+      return res.status(400).json({ message: "Pickup coordinates missing" });
     }
 
     const captainsInRadius = await getCaptainsInTheRadius(
-      pickupCoordinates.lng,
-      pickupCoordinates.ltd,
-      5,
+      pickupCoords.lng,
+      pickupCoords.lat,
+      7000,
       vehicleType
     );
-    
+
+    console.log(captainsInRadius, "captains controller backend....");
+
     ride.otp = "";
 
     const rideWithUser = await rideModel
@@ -52,7 +64,7 @@ export const createRide = async (req, res) => {
 
       sendMessageToSocketId(captain.socketId, {
         event: "new-ride",
-        data: rideWithUser,
+        data: { rideWithUser, pickupCoords, destinationCoords },
       });
     });
 
@@ -60,10 +72,9 @@ export const createRide = async (req, res) => {
       ride,
       captains: captainsInRadius.map((captain) => ({
         id: captain._id,
-        location:captain.location?.coordinates,
+        location: captain.location?.coordinates,
       })),
     });
-
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: err.message });
@@ -71,15 +82,18 @@ export const createRide = async (req, res) => {
 };
 
 export const getFare = async (req, res) => {
+  // console.log("QUERY RECEIVED:", req.query);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { pickup, destination } = req.query;
+  const { pickupCoords, destinationCoords } = req.query;
+
+  console.log(pickupCoords, destinationCoords, "pick and drop");
 
   try {
-    const fare = await getFareService(pickup, destination);
+    const fare = await getFareService(pickupCoords, destinationCoords);
     return res.status(200).json(fare);
   } catch (err) {
     return res.status(500).json({ message: err.message });
@@ -104,8 +118,11 @@ export const confirmRide = async (req, res) => {
       event: "ride-confirmed",
       data: ride,
     });
+    //remove OTP for captain before sending response
+    const captainSafeRide = ride.toObject();
+    delete captainSafeRide.otp;
 
-    return res.status(200).json(ride);
+    return res.status(200).json(captainSafeRide);
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: err.message });

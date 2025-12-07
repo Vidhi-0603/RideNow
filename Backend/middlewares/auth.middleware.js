@@ -5,17 +5,23 @@ import captainModel from '../models/captain.model.js';
 
 export const authUser = async (req, res, next) => {
     const { accessToken } = req.cookies;
-    console.log(accessToken,"auth");
+    // console.log(accessToken,"auth");
     
     if (!accessToken) return res.status(401).json({ message: "Unauthorized" });
 
     const isblacklisted = await blacListTokenModel.findOne({ token: accessToken }); 
+    console.log(isblacklisted,"blacklisted user auth...");
+    
     if(isblacklisted) return res.status(401).json({ message: "Unauthorized" });
 
     try {
         const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
 
+        console.log(decoded,"decoded user auth...");
+        
         const user = await userModel.findById(decoded._id);
+        console.log(user,"user auth...");
+        
         if (!user) return res.status(401).json({ message: 'Unauthorized' });  
         
         req.user = user;

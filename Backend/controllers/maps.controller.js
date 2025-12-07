@@ -1,26 +1,9 @@
 import captainModel from "../models/captain.model.js";
 import {
-  getAddressCoordinates,
   getDistanceAndTime,
   getSuggestions,
 } from "../services/maps.service.js";
 import { validationResult } from "express-validator";
-
-export const getCoordinates = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { address } = req.query;
-
-  try {
-    const coordinates = await getAddressCoordinates(address);
-    res.status(200).json(coordinates);
-  } catch (err) {
-    res.status(404).json({ message: "Failed to fetch coordinates" });
-  }
-};
 
 export const getDistanceTime = async (req, res) => {
   try {
@@ -42,11 +25,11 @@ export const getDistanceTime = async (req, res) => {
       return res.status(400).json({ message: "Captain location not set" });
     }
 
-    const captainLng = captain.location.coordinates[0];
-    const captainLat = captain.location.coordinates[1];
+    const lng = captain.location.coordinates[0];
+    const lat = captain.location.coordinates[1];
 
     const pickupDistance = await getDistanceAndTime(
-      { captainLat, captainLng },
+      { lat, lng },
       origin
     );
     const destinationDistance = await getDistanceAndTime(origin, destination);
