@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import {
-  DirectionsRenderer,
-  GoogleMap,
-  Marker,
-  useJsApiLoader,
-} from "@react-google-maps/api";
 import { SocketDataContext } from "../context/SocketContext";
-import axiosInstance from "../utils/axiosInstance";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import iconUrl from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import { Polyline } from "react-leaflet";
 
-const containerStyle = {
-  width: "100%",
-  height: "100vh",
-};
+const defaultIcon = L.icon({
+  iconUrl,
+  iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
 const RiderMap = ({
   ride = null,
@@ -19,56 +19,82 @@ const RiderMap = ({
   nearbyCaptains = [],
   showCaptains = false,
   captainFound = false,
-  pickup = null,
-  destination = null,
   isrideStarted = false,
+  pickupCoords = null,
+  destinationCoords = null,
+  ConfirmRide = false,
 }) => {
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-  });
+  const { socket } = useContext(SocketDataContext);
 
   const [riderPosition, setriderPosition] = useState({
     lat: 28.6139,
     lng: 77.209,
   });
-  const { socket } = useContext(SocketDataContext);
   const [driverPosition, setDriverPosition] = useState(null);
-  const [pickupCoords, setPickupCoords] = useState(null);
-  const [directions, setDirections] = useState(null);
-  const [destinationCoords, setDestinationCoords] = useState(null);
+  const [routeCoords, setRouteCoords] = useState(null);
 
+  const riderRef = useRef(null);
   const mapRef = useRef(null);
+  const markersRef = useRef({
+    rider: null,
+    pickup: null,
+    destination: null,
+    driver: null,
+    captains: [],
+    route: null,
+  });
 
+  //Initialize Leaflet Map
+  useEffect(() => {
+    if (!mapRef.current && riderRef.current) {
+      mapRef.current = L.map(riderRef.current).setView(
+        riderPosition || { lat: 28.6139, lng: 77.209 },
+        16
+      );
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(mapRef.current);
+    }
+  }, []);
+
+  //live user location
   useEffect(() => {
     if (!user || !navigator.geolocation) return;
-
     socket.emit("join", { userId: user._id, userType: "user" });
 
+    let bestAccuracy = Infinity;
     const handlePos = (pos) => {
-      const lat = Number(pos.coords.latitude);
-      const lng = Number(pos.coords.longitude);
-      
-      // if (pos.coords.accuracy && pos.coords.accuracy > 200) return;
-      setriderPosition({ lat, lng });
+      const { latitude, longitude, accuracy } = pos.coords;
+      // Ignore very bad accuracy (> 300m)
+      if (accuracy > 300) {
+        console.log("⚠ Ignoring bad GPS reading:", accuracy);
+        return;
+      }
+      // Only update if accuracy is better than last known
+      if (accuracy < bestAccuracy) {
+        bestAccuracy = accuracy;
+        setriderPosition({ lat: latitude, lng: longitude });
+      }
     };
 
     const handleErr = (err) => {
       console.error("Geolocation error:", err);
     };
 
-    // Try to get a fresh non-cached position first
+    // First quick update
     navigator.geolocation.getCurrentPosition(handlePos, handleErr, {
       enableHighAccuracy: true,
-      maximumAge: 0, // don't use cached
-      timeout: 10000,
+      timeout: 15000,
+      maximumAge: 0,
     });
 
-    // Then start watching for updates
+    // Continuous accurate watch
     const watchId = navigator.geolocation.watchPosition(handlePos, handleErr, {
       enableHighAccuracy: true,
+      timeout: 25000,
       maximumAge: 0,
-      timeout: 10000,
     });
 
     return () => {
@@ -76,132 +102,150 @@ const RiderMap = ({
     };
   }, [user, socket]);
 
+  //Rider Marker
   useEffect(() => {
-    if (ride) {
-      console.log(ride);
+    if (!mapRef.current) return;
+    if (ConfirmRide) {
+      if (markersRef.current.rider) {
+        mapRef.current.removeLayer(markersRef.current.rider);
+        markersRef.current.rider = null;
+      }
+      return;
     }
-  }, [ride]);
 
-  useEffect(() => {
-    if (pickup && typeof pickup === "string") {
-      axiosInstance
-        .get("/maps/get-coordinates", { params: { address: pickup } })
-        .then((res) => {
-          setPickupCoords({
-            lat: Number(res.data.ltd),
-            lng: Number(res.data.lng),
-          }); // <-- fix typo ltd -> lat
+    if (!ConfirmRide && !captainFound) {
+      if (!markersRef.current.rider) {
+        markersRef.current.rider = L.marker(riderPosition, {
+          icon: defaultIcon,
         })
-        .catch((err) => console.error("Pickup geocode failed:", err));
-    } else if (pickup && typeof pickup === "object") {
-      setPickupCoords(pickup); // if you already pass {lat, lng}
+          .addTo(mapRef.current)
+          .bindPopup("You");
+      } else {
+        markersRef.current.rider.setLatLng(riderPosition);
+      }
+      mapRef.current.panTo(riderPosition);
     }
-  }, [pickup]);
+  }, [riderPosition, captainFound, ConfirmRide]);
 
+  //Pickup Marker
+  useEffect(() => {
+    if (!mapRef.current) return;
+    // remove if cancelled
+    if (!ConfirmRide) {
+      if (markersRef.current.pickup) {
+        mapRef.current.removeLayer(markersRef.current.pickup);
+        markersRef.current.pickup = null;
+      }
+      return;
+    }
+
+    if (!pickupCoords) return;
+
+    if (!markersRef.current.pickup && ConfirmRide) {
+      markersRef.current.pickup = L.marker(pickupCoords, { icon: defaultIcon })
+        .addTo(mapRef.current)
+        .bindPopup("Pickup");
+    } else {
+      markersRef.current.pickup.setLatLng(pickupCoords);
+    }
+    mapRef.current.panTo(pickupCoords);
+  }, [pickupCoords, ConfirmRide]);
+
+  //when pickup changes
+  useEffect(() => {
+    console.log(pickupCoords, ConfirmRide);
+  }, [pickupCoords, ConfirmRide]);
+
+  //Show nearby captains...
+  useEffect(() => {
+    if (!mapRef.current || !showCaptains || captainFound) return;
+
+    markersRef.current.captains.forEach((m) => {
+      mapRef.current.removeLayer(m);
+    });
+    markersRef.current.captains = [];
+
+    console.log(nearbyCaptains, "captains...");
+
+    nearbyCaptains.forEach((cap) => {
+      if (!cap.location) return;
+      const lat = cap.location[1];
+      const lng = cap.location[0];
+
+      const m = L.marker([lat, lng], { icon: defaultIcon })
+        .addTo(mapRef.current)
+        .bindPopup("Captain");
+      markersRef.current.captains.push(m);
+    });
+  }, [nearbyCaptains, showCaptains, captainFound]);
+
+  //Driver position when CaptainFound is true
   useEffect(() => {
     if (!captainFound || !ride?.captain?.location) return;
 
-    // Fix: Use coordinates array from location object
-    const coords = ride.captain.location.coordinates;
-    if (Array.isArray(coords)) {
-      const [lng, lat] = coords;
-      setDriverPosition({ lat: Number(lat), lng: Number(lng) });
-      if (isrideStarted && destination) {
-        axiosInstance
-          .get("/maps/get-coordinates", { params: { address: destination } })
-          .then((res) => {
-            setDestinationCoords({
-              lat: Number(res.data.ltd),
-              lng: Number(res.data.lng),
-            }); // fixed ltd → lat
-          })
-          .catch((err) => console.log("Destination geocode failed:", err));
-      }
+    const [Lng, Lat] = ride.captain.location.coordinates;
+    const driverPos = { lat: Number(Lat), lng: Number(Lng) };
+    setDriverPosition(driverPos);
+
+    if (!markersRef.current.driver) {
+      markersRef.current.driver = L.marker(driverPos, { icon: defaultIcon })
+        .addTo(mapRef.current)
+        .bindPopup("Driver");
     } else {
-      console.warn(
-        "ride.captain.location.coordinates is not an array:",
-        ride.captain.location.coordinates
-      );
+      markersRef.current.driver.setLatLng(driverPos);
     }
-  }, [
-    captainFound,
-    isrideStarted,
-    destination,
-    ride?.captain?.location,
-    JSON.stringify(ride?.captain?.location),
-  ]);
+  }, [captainFound, JSON.stringify(ride?.captain?.location)]);
 
+  //destination marker
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!isrideStarted || !destinationCoords || !mapRef.current) return;
 
-    if (!ride && riderPosition) {
-      // User has no ride yet → center on themselves
-      mapRef.current.panTo(riderPosition);
-    } else if (ride && pickupCoords && !isrideStarted) {
-      // Ride created but not started → center on pickup location
-      mapRef.current.panTo(pickupCoords);
-    } else if (ride && isrideStarted && directions) {
-      // Ride started → fit map bounds to the route
-      const bounds = new window.google.maps.LatLngBounds();
-      directions.routes[0].overview_path.forEach((point) => {
-        bounds.extend(point);
-      });
-      mapRef.current.fitBounds(bounds);
+    if (!markersRef.current.destination) {
+      markersRef.current.destination = L.marker(destinationCoords, {
+        icon: defaultIcon,
+      })
+        .addTo(mapRef.current)
+        .bindPopup("Destination");
+    } else {
+      markersRef.current.destination.setLatLng(destinationCoords);
     }
-  }, [riderPosition, pickupCoords, isrideStarted, ride, directions]);
+  }, [isrideStarted, destinationCoords]);
 
+  //fetch route directions
   useEffect(() => {
     if (!driverPosition || !captainFound) return;
-    const directionsService = new window.google.maps.DirectionsService();
 
-    if (!isrideStarted && pickupCoords && captainFound) {
-      console.log(
-        isrideStarted,
-        "ride status",
-        pickupCoords,
-        "pickupcoords",
-        captainFound,
-        "captain status"
-      );
-
-      directionsService.route(
-        {
-          origin: driverPosition,
-          destination: pickupCoords,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === "OK") {
-            setDirections(result);
-            if (status === "OK") {
-              setDirections(result);
-            }
-          } else {
-            console.error("Directions request failed:", status);
-          }
-        }
-      );
+    let origin = driverPosition;
+    let destination = null;
+    if (!isrideStarted && pickupCoords) {
+      destination = pickupCoords;
     }
 
-    if (isrideStarted && destinationCoords && captainFound) {
-      directionsService.route(
-        {
-          origin: driverPosition,
-          destination: destinationCoords,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === "OK") {
-            setDirections(result);
-            if (status === "OK") {
-              setDirections(result);
-            }
-          } else {
-            console.error("Directions request failed:", status);
-          }
-        }
-      );
+    if (isrideStarted && destinationCoords) {
+      destination = destinationCoords;
     }
+
+    if (!origin || !destination) return;
+
+    const fetchRoute = async () => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+        const respomse = await fetch(url);
+        const data = await respomse.json();
+
+        if (data.code === "Ok") {
+          const route = data.routes[0].geometry.coordinates;
+          const leafletCoords = route.map((coord) => [coord[1], coord[0]]);
+          setRouteCoords(leafletCoords);
+          mapRef.current.fitBounds(leafletCoords);
+        } else {
+          console.error("Routing failed:", data.code);
+        }
+      } catch (err) {
+        console.error("Error fetching directions:", err);
+      }
+    };
+    fetchRoute();
   }, [
     driverPosition,
     pickupCoords,
@@ -210,84 +254,31 @@ const RiderMap = ({
     isrideStarted,
   ]);
 
-  if (!riderPosition && !pickupCoords) return <p>Loading map...</p>;
-  console.log(riderPosition);
-  console.log(pickupCoords);
-  console.log(driverPosition);
-  if (!isLoaded) return <p>Loading map…</p>;
+  useEffect(() => {
+    if (!mapRef.current || !routeCoords) return;
 
-  // if (!ride) return <p>Loading ride...</p>;
+    // Remove old polyline
+    if (markersRef.current.route) {
+      mapRef.current.removeLayer(markersRef.current.route);
+    }
+
+    const polyline = L.polyline(routeCoords, {
+      color: "blue", // 🔹 optional
+    }).addTo(mapRef.current);
+
+    markersRef.current.route = polyline;
+
+    // Fit map to route
+    mapRef.current.fitBounds(polyline.getBounds());
+  }, [routeCoords]);
+
+  if (!riderPosition && !pickupCoords) return <p>Loading map...</p>;
+
   return (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      onLoad={(map) => {
-        mapRef.current = map;
-      }}
-      center={pickupCoords ? pickupCoords : riderPosition}
-      zoom={13}
-    >
-      {!captainFound && !pickupCoords && (
-        <Marker
-          position={riderPosition}
-          label="You"
-          icon={{
-            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-          }}
-        />
-      )}
-      {!captainFound && pickupCoords && (
-        <Marker
-          position={pickupCoords}
-          label="hi"
-          icon={{
-            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-          }}
-        />
-      )}
-      {showCaptains &&
-        !captainFound &&
-        nearbyCaptains.map((captain) =>
-          captain.location ? (
-            <Marker
-              key={captain.id}
-              position={{ lat: captain.location[1], lng: captain.location[0] }}
-              label="Captain"
-              icon={{
-                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-              }}
-            />
-          ) : null
-        )}
-      {captainFound && (
-        <Marker
-          position={pickupCoords}
-          label="me"
-          icon={{
-            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-          }}
-        />
-      )}
-      {/* {(captainFound && pickupCoords && !isrideStarted) && (
-        <Marker
-          position={driverPosition}
-          label={"captain"}
-          // icon={{
-          //   url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
-          // }}
-        />
-      )} */}
-      {captainFound && destinationCoords && isrideStarted && (
-        <Marker
-          position={destinationCoords}
-          label={"Destination"}
-          icon={{
-            url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-          }}
-        />
-      )}
-      {directions && <DirectionsRenderer directions={directions} />}
-    </GoogleMap>
+    <div
+      ref={riderRef}
+      style={{ width: "inherit", height: "inherit", zIndex: "0" }}
+    ></div>
   );
 };
-
 export default RiderMap;

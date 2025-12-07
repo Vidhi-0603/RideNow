@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import LogoutCaptain from "../components/LogoutCaptain.jsx";
 import CaptainDetails from "../components/CaptainDetails.jsx";
 import RidePopUp from "../components/RidePopUp.jsx";
@@ -10,6 +10,7 @@ import { SocketDataContext } from "../context/SocketContext.jsx";
 import axiosInstance from "../utils/axiosInstance.js";
 import CaptainMap from "../components/CaptainMap.jsx";
 import { RideDataContext } from "../context/RideContext.jsx";
+import { useNavigate } from "react-router-dom";
 
 const CaptainHome = () => {
   const [ridePopUpPanelOpen, setRidePopUpPanelOpen] = useState(false);
@@ -22,50 +23,53 @@ const CaptainHome = () => {
   const ridePopUpPanelRef = useRef(null);
   const confirmridePopUpPanelRef = useRef(null);
 
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [destinationCoords, setDestinationCoords] = useState(null);
   const { socket } = useContext(SocketDataContext);
   const { captain } = useContext(CaptainDataContext);
-  const { setRideData } = useContext(RideDataContext);
+  const { rideData, setRideData } = useContext(RideDataContext);
+  const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   if (!captain) return;
+  useEffect(() => {
+    if (!captain) return;
 
-  //   socket.emit("join", {
-  //     userId: captain._id,
-  //     userType: "captain",
-  //   });
-
-  //   const updateLocation = () => {
-  //     if (navigator.geolocation) {
-  //       navigator.geolocation.getCurrentPosition((position) => {
-  //         socket.emit("update-location-captain", {
-  //           userId: captain._id,
-  //           location: {
-  //             lat: position.coords.latitude,
-  //             lng: position.coords.longitude,
-  //           },
-  //         });
-  //       });
-  //     }
-  //   };
-
-  //   const locationInterval = setInterval(updateLocation, 10000);
-  //   updateLocation();
-  // }, [socket, captain]);
-
-  socket.on("new-ride", async (data) => {
-    console.log(data);
-
-    const distanceTime = await axiosInstance.get("maps/get-distance-time", {
-      params: { origin: data.pickup, destination: data.destination },
+    socket.emit("join", {
+      userId: captain._id,
+      userType: "captain",
     });
 
-    console.log(distanceTime.data);
-    setPickupData(distanceTime.data.pickupDistance);
-    setDestinationData(distanceTime.data.destinationDistance);
+  }, [socket, captain]);
 
-    setRideData(data);
-    setRidePopUpPanelOpen(true);
-  });
+useEffect(() => {
+  if (!socket) return;
+
+  const handleNewRide = async (data) => {
+    try {
+      const { rideWithUser, pickupCoords, destinationCoords } = data;
+
+      const distanceTime = await axiosInstance.get("maps/get-distance-time", {
+        params: { origin: pickupCoords, destination: destinationCoords },
+      });
+
+      setDestinationCoords(destinationCoords);
+      setPickupCoords(pickupCoords);
+      setPickupData(distanceTime.data.pickupDistance);
+      setDestinationData(distanceTime.data.destinationDistance);
+      setRideData(rideWithUser);
+      setRidePopUpPanelOpen(true);
+    } catch (err) {
+      console.error("❌ Error in new-ride handler:", err);
+    }
+  };
+
+  socket.on("new-ride", handleNewRide);
+
+  // Cleanup to avoid multiple listeners
+  return () => {
+    socket.off("new-ride", handleNewRide);
+  };
+}, [socket]);
+
 
   // Mobile & Tablet animations (< 1024px)
   useGSAP(
@@ -113,8 +117,19 @@ const CaptainHome = () => {
       setIsRiding(true);
       setRidePopUpPanelOpen(false);
       setConfirmRidePopUpPanelOpen(false);
+      // Navigate to CaptainRiding page
+      navigate("/captain-riding", {
+        state: {
+          destinationData: destinationData,
+          showRoute: true,
+          pickupCoords: pickupCoords,
+          destinationCoords: destinationCoords,
+          captainLocation: captain?.location?.coordinates,
+        },
+      });
     }
   }
+
 
   // Determine which panel content to show on desktop
   const getCurrentPanelContent = () => {

@@ -12,12 +12,13 @@ const OngoingRide = () => {
   const collapsePanelRef = useRef(null);
 
   const location = useLocation();
-  const { ride, isRideStarted } = location.state || {};
+  const { ride, isRideStarted, pickupCoords, destinationCoords } =
+    location.state || {};
   const { socket } = useContext(SocketDataContext);
   const navigate = useNavigate();
 
   console.log(ride);
-  
+
   socket.on("ride-ended", () => {
     navigate("/home");
   });
@@ -47,15 +48,14 @@ const OngoingRide = () => {
       <div className="h-screen w-screen">
         {/* image for temporary use  */}
         {/* {isRideStarted && ( */}
-          <RiderMap
-            user={ride?.user}
-            ride={ride}
-            captainFound={true}
-            isrideStarted={isRideStarted}
-            pickup={ride?.pickup}
-            destination={ride?.destination}
-          />
-      
+        <RiderMap
+          user={ride?.user}
+          ride={ride}
+          captainFound={true}
+          isrideStarted={isRideStarted}
+          pickupCoords={pickupCoords}
+          destinationCoords={destinationCoords}
+        />
       </div>
 
       {/* Ongoing Ride */}

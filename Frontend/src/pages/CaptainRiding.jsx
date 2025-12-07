@@ -9,16 +9,26 @@ import CaptainMap from "../components/CaptainMap.jsx";
 import { RideDataContext } from "../context/RideContext.jsx";
 
 const CaptainRiding = () => {
+
   const [OTP, setOTP] = useState("");
   const [OTPPanelOpen, setOTPPanelOpen] = useState(true);
-  const [finishRidePanelOpen, setFinishRidePanelOpen] = useState(false);
-  const { captain } = useContext(CaptainDataContext);
-  const location = useLocation();
-  const { destinationData, showRoute } = location.state || {};
-  const { rideData, setRideData } = useContext(RideDataContext);
-  const [isrideStarted, setIsrideStarted] = useState(false);
   const OTPPanelRef = useRef(null);
   const finishRidePanelRef = useRef(null);
+
+  const [finishRidePanelOpen, setFinishRidePanelOpen] = useState(false);
+  const [isrideStarted, setIsrideStarted] = useState(false);
+
+  const { captain } = useContext(CaptainDataContext);
+  const { rideData, setRideData } = useContext(RideDataContext);
+
+  const location = useLocation();
+  const {
+    destinationData,
+    showRoute,
+    pickupCoords,
+    destinationCoords,
+    captainLocation,
+  } = location.state || {};
 
   useGSAP(
     function () {
@@ -89,7 +99,7 @@ const CaptainRiding = () => {
   );
 
   const submitHandler = async (e) => {
-    e.preventDefault();    
+    e.preventDefault();
     const response = await axiosInstance.get("/ride/start-ride", {
       params: {
         rideId: rideData?._id,
@@ -100,7 +110,7 @@ const CaptainRiding = () => {
     if (response.status === 200) {
       setOTPPanelOpen(false);
       setFinishRidePanelOpen(true);
-      setIsrideStarted(true);      
+      setIsrideStarted(true);
       setRideData(response.data);
     }
   };
@@ -109,7 +119,7 @@ const CaptainRiding = () => {
 
   async function endRide() {
     const response = await axiosInstance.post("/ride/end-ride", {
-      rideId: rideData._id,
+      rideId: rideData?._id,
     });
 
     if (response.status === 200) {
@@ -123,29 +133,20 @@ const CaptainRiding = () => {
 
   return (
     <div className="h-screen relative overflow-hidden">
-      {/* Uberlogo Image and Logout button */}
       <div className="flex w-full p-2 items-center justify-between absolute top-0">
         <LogoutCaptain />
       </div>
 
-      {/* UberMap Image */}
       <div className="h-screen w-screen">
         {/* image for temporary use  */}
-        {isrideStarted ? (
-          <CaptainMap
-            captain={captain}
-            pickup={rideData?.pickup}
-            showRoute={showRoute}
-            isrideStarted={isrideStarted}
-            destination={rideData?.destination}
-          />
-        ) : (
-          <CaptainMap
-            captain={captain}
-            pickup={rideData?.pickup}
-            showRoute={showRoute}
-          />
-        )}
+        <CaptainMap
+          captain={captain}
+          showRoute={showRoute}
+          isrideStarted={isrideStarted}
+          pickupCoords={pickupCoords}
+          destinationCoords={destinationCoords}
+          captainLocation={captainLocation}
+        />
       </div>
 
       <div
@@ -232,7 +233,6 @@ const CaptainRiding = () => {
         <div className="mt-5 p-3 flex justify-center">
           <button
             onClick={endRide}
-            // to="/rideDetails"
             className="bg-red-700 px-10 py-2 text-2xl rounded text-white"
           >
             Finsih Ride

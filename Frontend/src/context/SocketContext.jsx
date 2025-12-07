@@ -3,8 +3,6 @@ import { io } from "socket.io-client";
 
 export const SocketDataContext = createContext();
 
-// const socket = io(`${import.meta.env.VITE_BASE_URL}`); // Replace with your server URL
-
 const SocketProvider = ({ children }) => {
 
   const socket = useMemo(() => {

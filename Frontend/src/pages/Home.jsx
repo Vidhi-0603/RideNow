@@ -16,7 +16,9 @@ import { RideDataContext } from "../context/RideContext";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
+  const [pickupCoords, setPickupCoords] = useState(null);
   const [destination, setDestination] = useState("");
+  const [destinationCoords, setDestinationCoords] = useState(null);
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [vehiclePanelOpen, setVehiclePanelOpen] = useState(false);
@@ -69,7 +71,9 @@ const Home = () => {
     setRideData(ride);
     setRide(ride);
     setIsRideStarted(true);
-    navigate("/ongoing-ride", { state: { ride, isRideStarted: true } });
+    navigate("/ongoing-ride", {
+      state: { ride, isRideStarted: true, pickupCoords, destinationCoords },
+    });
   });
 
   // GSAP animations for mobile panels
@@ -237,7 +241,6 @@ const Home = () => {
         params: { address: e.target.value },
       });
       setDestinationSuggestions(response.data);
-      console.log(selectedRidePanelOpen);
     } catch (err) {
       console.log(err);
     }
@@ -248,11 +251,8 @@ const Home = () => {
     setPanelOpen(false);
 
     const response = await axiosInstance.get("/ride/get-fare", {
-      params: { pickup, destination },
+      params: { pickupCoords, destinationCoords },
     });
-
-    console.log(response.data, "fare");
-
     setFare(response.data);
   }
 
@@ -261,8 +261,9 @@ const Home = () => {
       pickup,
       destination,
       vehicleType,
+      pickupCoords,
+      destinationCoords,
     });
-
     setNearbyCaptains(response.data.captains || []);
     setConfirmRide(true);
     setShowCaptains(true);
@@ -320,6 +321,8 @@ const Home = () => {
             setPickup={setPickup}
             setDestination={setDestination}
             activeField={activeField}
+            setPickupCoords={setPickupCoords}
+            setDestinationCoords={setDestinationCoords}
           />
         </div>
       );
@@ -340,21 +343,18 @@ const Home = () => {
 
         {/* Map */}
         <div className="h-screen w-screen">
-          {!ConfirmRide ? (
-            <RiderMap user={user} style={{ paddingTop: "80px" }} />
-          ) : (
-            <RiderMap
-              user={user}
-              ride={ride}
-              nearbyCaptains={nearbyCaptains}
-              showCaptains={showCaptains}
-              captainFound={captainFound}
-              isrideStarted={isrideStarted}
-              pickup={pickup}
-              destination={destination}
-              style={{ paddingTop: "80px" }}
-            />
-          )}
+          <RiderMap
+            user={user}
+            ride={ride}
+            nearbyCaptains={nearbyCaptains}
+            showCaptains={showCaptains}
+            captainFound={captainFound}
+            isrideStarted={isrideStarted}
+            pickupCoords={pickupCoords}
+            destinationCoords={destinationCoords}
+            ConfirmRide={ConfirmRide}
+            style={{ paddingTop: "80px" }}
+          />
         </div>
 
         {/* Search Panel */}
@@ -419,6 +419,8 @@ const Home = () => {
               setPickup={setPickup}
               setDestination={setDestination}
               activeField={activeField}
+              setPickupCoords={setPickupCoords}
+              setDestinationCoords={setDestinationCoords}
             />
           </div>
         </div>
@@ -479,20 +481,18 @@ const Home = () => {
         <div className="flex-1 relative">
           {/* Map */}
           <div className="h-full w-full">
-            {!ConfirmRide ? (
-              <RiderMap user={user} />
-            ) : (
-              <RiderMap
-                user={user}
-                ride={ride}
-                nearbyCaptains={nearbyCaptains}
-                showCaptains={showCaptains}
-                captainFound={captainFound}
-                isrideStarted={isrideStarted}
-                pickup={pickup}
-                destination={destination}
-              />
-            )}
+            <RiderMap
+              user={user}
+              ride={ride}
+              nearbyCaptains={nearbyCaptains}
+              showCaptains={showCaptains}
+              captainFound={captainFound}
+              isrideStarted={isrideStarted}
+              pickupCoords={pickupCoords}
+              destinationCoords={destinationCoords}
+              ConfirmRide={ConfirmRide}
+              style={{ paddingTop: "80px" }}
+            />
           </div>
         </div>
 
