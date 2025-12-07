@@ -88,16 +88,14 @@ const ConfirmRidePopUp = (props) => {
               Cancel Ride
             </button>
 
-            <Link
-              to="/captain-riding"
-              state={{ destinationData: props.destinationData, showRoute: true }}
+            <button
               onClick={() => {
                 props.confirmRide(rideData);
               }}
               className="bg-green-800 px-4 py-1 rounded-full text-white"
             >
               Confirm Ride
-            </Link>
+            </button>
           </div>
         </div>
       </div>

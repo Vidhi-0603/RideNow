@@ -1,14 +1,17 @@
 import React from "react";
 
 const LocationSearchPanel = (props) => {
-
   const handleSuggestionClick = (suggestion) => {
     if (props.activeField === "pickup") {
-      props.setPickup(suggestion);
+      props.setPickup(suggestion.description);
+      props.setPickupCoords({ lat: suggestion.lat, lng: suggestion.lng });
     } else if (props.activeField === "destination") {
-      props.setDestination(suggestion);
+      props.setDestination(suggestion.description);
+      props.setDestinationCoords({
+        lat: suggestion.lat,
+        lng: suggestion.lng,
+      });
     }
-    
   };
 
   return (
@@ -26,7 +29,7 @@ const LocationSearchPanel = (props) => {
               </h2>
             </div>
             <div>
-              <h4 className="font-medium w-[80%]">{elem}</h4>
+              <h4 className="font-medium w-[80%]">{elem.description}</h4>
             </div>
           </div>
         );
