@@ -3,9 +3,10 @@ import { Navigate } from "react-router-dom";
 import { AuthContext } from "../auth/AuthProvider";
 import { CaptainDataContext } from "../context/CaptainContext.jsx";
 import axiosInstance from "./axiosInstance.js";
+import Loader from "../components/Loader.jsx";
 
 const CheckCaptainAuth = ({ children }) => {
-  const { role, loading: authLoading } = useContext(AuthContext);
+  const { role, loading } = useContext(AuthContext);
   const {  setCaptain } = useContext(CaptainDataContext);  
 
   useEffect(() => {
@@ -26,8 +27,8 @@ const CheckCaptainAuth = ({ children }) => {
   }, [role, setCaptain]);
   
 
-  if (authLoading) return <p>Loading...</p>;
-
+  if (loading) return <Loader />;
+  
   if (!role || role !== "captain") {
     return <Navigate to="/captain-login" replace />;
   }
