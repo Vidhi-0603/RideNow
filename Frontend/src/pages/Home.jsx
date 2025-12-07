@@ -57,6 +57,7 @@ const Home = () => {
   }, [user, socket]);
 
   socket.on("ride-confirmed", (ride) => {
+    console.log("ride is confirmed...", ride);
     setRideData(ride);
     setShowCaptains(false);
     setCaptainFound(true);
