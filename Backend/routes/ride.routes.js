@@ -2,8 +2,13 @@ import express from "express";
 const router = express.Router();
 import { body, query } from "express-validator";
 import { authCaptain, authUser } from "../middlewares/auth.middleware.js";
-import { confirmRide, createRide, endRide, getFare, startRide } from "../controllers/ride.controller.js";
-
+import {
+  confirmRide,
+  createRide,
+  endRide,
+  getFare,
+  startRide,
+} from "../controllers/ride.controller.js";
 
 router.post(
   "/create-ride",
@@ -20,22 +25,48 @@ router.post(
     .isString()
     .isIn(["Auto", "Car", "Motorcycle"])
     .withMessage("Invalid vehicle type"),
+  body("pickupCoords.lat").exists().isFloat(),
+  body("pickupCoords.lng").exists().isFloat(),
+  body("destinationCoords.lat").exists().isFloat(),
+  body("destinationCoords.lng").exists().isFloat(),
   createRide
 );
 
 router.get(
   "/get-fare",
   authUser,
-  query("pickup")
-    .isString()
-    .isLength({ min: 3 })
-    .withMessage("Invalid pickup address"),
-  query("destination")
-    .isString()
-    .isLength({ min: 3 })
-    .withMessage("Invalid destination address"),
+
+  query("pickupCoords[lat]")
+    .exists()
+    .withMessage("pickupCoords[lat] is required")
+    .isFloat({ min: -90, max: 90 })
+    .withMessage("pickupCoords[lat] must be valid")
+    .toFloat(),
+
+  query("pickupCoords[lng]")
+    .exists()
+    .withMessage("pickupCoords[lng] is required")
+    .isFloat({ min: -180, max: 180 })
+    .withMessage("pickupCoords[lng] must be valid")
+    .toFloat(),
+
+  query("destinationCoords[lat]")
+    .exists()
+    .withMessage("destinationCoords[lat] is required")
+    .isFloat({ min: -90, max: 90 })
+    .withMessage("destinationCoords[lat] must be valid")
+    .toFloat(),
+
+  query("destinationCoords[lng]")
+    .exists()
+    .withMessage("destinationCoords[lng] is required")
+    .isFloat({ min: -180, max: 180 })
+    .withMessage("destinationCoords[lng] must be valid")
+    .toFloat(),
+
   getFare
 );
+
 
 router.post(
   "/confirm",
@@ -55,13 +86,11 @@ router.get(
   startRide
 );
 
-
 router.post(
   "/end-ride",
   authCaptain,
   body("rideId").isMongoId().withMessage("Invalid ride id"),
   endRide
 );
-
 
 export default router;
