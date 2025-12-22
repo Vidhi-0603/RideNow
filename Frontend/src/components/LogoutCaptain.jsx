@@ -7,7 +7,6 @@ import gsap from "gsap";
 const LogoutCaptain = (props) => {
   const logoutRef = useRef(null);
   const navigate = useNavigate();
-
   const handleLogout = async () => {
     const data = await logoutCaptain();
     console.log(data, "logout done!");
@@ -19,8 +18,7 @@ const LogoutCaptain = (props) => {
       if (props.confirmRidePopUpPanelOpen) {
         gsap.to(logoutRef.current, {
           zIndex: 0,
-        });
-        
+        });      
       } else {
         gsap.to(logoutRef.current, {
           zIndex: 50,
