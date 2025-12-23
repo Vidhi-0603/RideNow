@@ -48,43 +48,6 @@ This project is a frontend for an Uber-like ride-hailing app, supporting registr
 
 ---
 
-## Google Maps API Integration
-
-### How to Integrate
-
-1. **Get an API Key:**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/).
-   - Enable the Maps JavaScript API, Geocoding API, and Directions API.
-   - Create an API key and add it to your `.env` file as:
-     ```
-     VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
-     ```
-
-2. **Install the Library:**
-   ```
-   npm install @react-google-maps/api
-   ```
-
-3. **Usage in Components:**
-   - Use the `<GoogleMap />` component from `@react-google-maps/api` to render maps.
-   - Use `<Marker />` to show user/captain/pickup/destination locations.
-   - Use `<DirectionsRenderer />` to display routes between points.
-   - Geocoding (address to coordinates) is done via backend endpoints using Google Maps Geocoding API.
-
-4. **Example:**
-   ```jsx
-   import { GoogleMap, Marker, DirectionsRenderer, LoadScript } from "@react-google-maps/api";
-
-   <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-     <GoogleMap center={center} zoom={15} mapContainerStyle={{ width: "100%", height: "100vh" }}>
-       <Marker position={userPosition} />
-       <DirectionsRenderer directions={directions} />
-     </GoogleMap>
-   </LoadScript>
-   ```
-
----
-
 ## Frontend Routes
 
 | Route                | Component                | Purpose                                                                 |
@@ -98,22 +61,6 @@ This project is a frontend for an Uber-like ride-hailing app, supporting registr
 | `/ongoing-ride`      | `OngoingRide`           | On Rider side, shows ongoing ride details and map with route between captain and rider |
 | `/captain-riding`      | `CaptainRiding`           | On Captain side, shows ongoing ride details and map with route between captain and rider |
 | `/ride-details`      | `RideDetails`           | Displays details of a completed ride                         |
-
----
-
-## Notes
-
-- Context providers (`UserDataContext`, `CaptainDataContext`, `RideDataContext`, `AuthContext`) are used for global state management.
-- Real-time location updates for captains are handled via sockets.
-- All map features require a valid Google Maps API key.
-
----
-
-## Troubleshooting
-
-- If maps do not render, check your API key and ensure `<LoadScript>` is used only once.
-- If registration or login fails, check backend API endpoints and CORS settings.
-- For location-based features, ensure browser geolocation permissions are granted.
 
 ---
 

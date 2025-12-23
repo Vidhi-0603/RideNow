@@ -38,16 +38,8 @@ This backend powers the UberClone ride-hailing app, providing REST APIs for user
 
 ## Google Maps API Integration
 
-- **Geocoding (Get Coordinates):**
-  - **Service:** `services/maps.service.js` (`getAddressCoordinates`)
-  - **API:**  
-    `https://maps.googleapis.com/maps/api/geocode/json?address=<address>&key=<API_KEY>`
-  - **Usage:** Converts address to `{ lat, lng }` for mapping and routing.
-
 - **Distance & Time Calculation:**
   - **Service:** `services/maps.service.js` (`getDistanceAndTime`)
-  - **API:**  
-    `https://maps.googleapis.com/maps/api/distancematrix/json?origins=<origin>&destinations=<destination>&key=<API_KEY>`
   - **Usage:** Returns distance and estimated travel time between two points.
 
 - **Nearby Captains:**
@@ -56,8 +48,6 @@ This backend powers the UberClone ride-hailing app, providing REST APIs for user
 
 - **Address Suggestions:**
   - **Service:** `services/maps.service.js` (`getSuggestions`)
-  - **API:**  
-    `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=<address>&key=<API_KEY>`
   - **Usage:** Returns autocomplete suggestions for entered addresses.
 
 ---
@@ -77,22 +67,19 @@ This backend powers the UberClone ride-hailing app, providing REST APIs for user
 - `POST /captain/login` — Login captain and issue JWT.
 - `GET /captain/profile` — Get captain profile (protected).
 - `POST /captain/logout` — Logout captain (blacklist token).
-- `PATCH /captain/update-location` — Update captain's location (used by socket).
 
 ### Ride Routes (`routes/ride.routes.js`)
 
 - `POST /ride/create-ride` — Create a new ride (user books a ride).
 - `GET /ride/get-fare` — Get fare estimate for a ride.
-- `POST /ride/confirm-ride` — Confirm ride by captain.
+- `POST /ride/confirm` — Confirm ride by captain.
 - `POST /ride/start-ride` — Start the ride (with OTP).
 - `POST /ride/end-ride` — End the ride.
 
 ### Maps Routes (`routes/maps.routes.js`)
 
-- `GET /maps/get-coordinates` — Get coordinates for an address.
 - `GET /maps/get-distance-time` — Get distance and time between two locations.
 - `GET /maps/get-suggestions` — Get address autocomplete suggestions.
-- `GET /maps/nearby-captains` — Get captains near a location.
 
 ---
 
@@ -120,20 +107,10 @@ This backend powers the UberClone ride-hailing app, providing REST APIs for user
 
 ## Example API Usage
 
-- **Get Coordinates:**
-  ```
-  GET /maps/get-coordinates?address=MG Road, Bengaluru
-  Response: { lat: 12.9716, lng: 77.5946 }
-  ```
 - **Get Distance & Time:**
   ```
   GET /maps/get-distance-time?origin=12.9716,77.5946&destination=13.0827,80.2707
   Response: { distance: "350 km", duration: "6 hours" }
-  ```
-- **Get Nearby Captains:**
-  ```
-  GET /maps/nearby-captains?lng=77.5946&lat=12.9716&radius=2&type=Car
-  Response: [ { captain details... } ]
   ```
 - **Get Suggestions:**
   ```
