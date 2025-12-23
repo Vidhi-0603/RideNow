@@ -9,7 +9,6 @@ const RidePopUp = (props) => {
         <h3 className="text-xl font-medium text-center mb-3">
           New Ride available...
         </h3>
-
         <h5
           onClick={() => {
             props.setRidePopUpPanelOpen(!props.ridePopUpPanelOpen);
@@ -18,7 +17,6 @@ const RidePopUp = (props) => {
         >
           <i className="ri-arrow-down-wide-line"></i>
         </h5>
-
         <div className="flex flex-col justify-between items-center">
           <div className="flex items-center justify-between p-3 bg-yellow-400 rounded-lg mt-4 w-full">
             <div className="flex items-center gap-3">
@@ -51,7 +49,6 @@ const RidePopUp = (props) => {
                 <p>{props.pickupData?.duration.text}</p>
               </div>
             </div>
-
             <div className="flex items-center justify-between py-2 px-1 gap-2 border-b-1 border-gray-300 rounded">
               <div className="text-lg flex itens-center justify-start gap-5 w-75">
                 <div className="flex items-center">

@@ -14,7 +14,7 @@ import rideRoutes from "./routes/ride.routes.js"
 import dotenv from 'dotenv';
 dotenv.config();
 const allowedOrigins = [
-  "https://uber-clone-kappa-five.vercel.app",
+  process.env.FRONTEND_URL,
 ];
 
 app.use(

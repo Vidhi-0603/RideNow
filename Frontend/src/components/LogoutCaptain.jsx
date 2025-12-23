@@ -7,7 +7,6 @@ import gsap from "gsap";
 const LogoutCaptain = (props) => {
   const logoutRef = useRef(null);
   const navigate = useNavigate();
-
   const handleLogout = async () => {
     const data = await logoutCaptain();
     console.log(data, "logout done!");
@@ -19,8 +18,7 @@ const LogoutCaptain = (props) => {
       if (props.confirmRidePopUpPanelOpen) {
         gsap.to(logoutRef.current, {
           zIndex: 0,
-        });
-        
+        });      
       } else {
         gsap.to(logoutRef.current, {
           zIndex: 50,
@@ -37,7 +35,6 @@ const LogoutCaptain = (props) => {
       <div className="text-red-600 font-bold text-2xl px-2 py-1 rounded z-50">
         RideNow
       </div>
-
       <button
         ref={logoutRef}
         type="button"

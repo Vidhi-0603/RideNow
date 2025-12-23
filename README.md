@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+
 # 🚗 RideNow
 
 A full-featured ride-hailing application built with the MERN stack that replicates core Uber functionalities. RideNow allows users to book rides and captains (drivers) to accept and fulfill ride requests in real-time with live location tracking and interactive maps.
@@ -7,6 +9,7 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 ## ✨ Features
 
 ### For Riders (Users)
+
 - 🔐 Secure authentication and registration
 - 🗺️ Interactive map interface with Leaflet
 - 📍 Real-time location-based ride booking
@@ -19,6 +22,7 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 - 🎯 Route visualization and turn-by-turn directions
 
 ### For Captains (Drivers)
+
 - 🔐 Secure authentication with vehicle details
 - 🗺️ Interactive captain dashboard with map view
 - 📬 Real-time ride request notifications
@@ -30,6 +34,7 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 - 🕐 Ride history management
 
 ### Core Capabilities
+
 - ⚡ Real-time bidirectional communication with Socket.IO
 - 🗺️ Free and open-source mapping with **Leaflet**
 - 🌍 Geocoding and routing powered by **Geoapify API**
@@ -39,10 +44,10 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 - 📱 Responsive design for mobile and desktop
 - ✨ Smooth animations with GSAP
 
-
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React** - UI library for building interactive interfaces
 - **Leaflet** - Open-source JavaScript library for interactive maps
 - **React-Leaflet** - React components for Leaflet maps
@@ -54,6 +59,7 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 - **Tailwind CSS** - Utility-first CSS framework
 
 ### Backend
+
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web application framework
 - **MongoDB** - NoSQL database
@@ -66,6 +72,7 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 - **dotenv** - Environment variable management
 
 ### External APIs
+
 - **Geoapify Geocoding API** - Convert addresses to coordinates
 - **Geoapify Routing API** - Calculate routes, distances, and travel times
 - **Geoapify Places API** - Address autocomplete and suggestions
@@ -74,8 +81,6 @@ A full-featured ride-hailing application built with the MERN stack that replicat
 
 ## 📋 Prerequisites
 
-Before running this project, ensure you have:
-
 - Node.js (v14 or higher)
 - MongoDB (local or Atlas)
 - Geoapify API Key (free tier available at [Geoapify](https://www.geoapify.com/))
@@ -83,6 +88,7 @@ Before running this project, ensure you have:
 ## 🚀 Installation & Setup
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/Vidhi-0603/RideNow.git
 cd RideNow
@@ -106,6 +112,8 @@ GEOAPIFY_API_KEY=your_geoapify_api_key
 ```
 
 Start the backend server:
+
+<<<<<<< HEAD
 
 ```bash
 npm start
@@ -135,6 +143,10 @@ npm start
 The frontend will run on `http://localhost:3000`
 
 ## 📁 Project Structure
+
+=======
+
+## Project Structure
 
 ```
 RideNow/
@@ -166,6 +178,7 @@ RideNow/
 ## 🔑 API Endpoints
 
 ### Authentication
+
 - `POST /api/users/register` - Register new user
 - `POST /api/users/login` - User login
 - `GET /api/users/profile` - Get user profile
@@ -176,6 +189,7 @@ RideNow/
 - `GET /api/captains/logout` - Captain logout
 
 ### Rides
+
 - `POST /api/rides/create` - Create new ride request
 - `GET /api/rides/get-fare` - Calculate ride fare
 - `POST /api/rides/confirm` - Confirm ride by captain
@@ -183,6 +197,7 @@ RideNow/
 - `POST /api/rides/end-ride` - Complete ride
 
 ### Maps & Location
+
 - `GET /api/maps/get-distance-time` - Calculate distance and time
 - `GET /api/maps/get-suggestions` - Get address suggestions
 
@@ -190,40 +205,89 @@ RideNow/
 
 RideNow uses Geoapify's free APIs for all mapping and location features:
 
----
+## 🔄 Real-Time Features
+
+RideNow uses Socket.IO for real-time communication:
+
+### WebSocket Events
+
+- `join` - User/Captain joins their room
+- `update-location-captain` - Captain sends location updates
+- `ride-requested` - Notify captains of new ride requests
+- `ride-confirmed` - Notify user when captain accepts
+- `ride-started` - Notify user when ride begins
+- `ride-ended` - Notify both parties when ride completes
+
+## 📱 Screenshots
+
+### User Interface
+
+- Landing page with call-to-action
+- User/Captain authentication
+- Interactive map with real-time location
+- Ride booking flow with fare estimation
+- Live tracking during rides
+
+### Captain Interface
+
+- Captain dashboard with nearby ride requests
+- Accept/decline ride interface
+- Navigation to pickup and drop locations
+- OTP verification screen
+- Ride completion interface
 
 ## Screenshots
 
-  
--[user Login Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20123811.png)
+- [Landing Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20123746.png)
+- [User Login Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20123811.png)
+- [Captain Login Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20124124.png)
+- [Location Search Suggestions](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20132540.png)
+- [Rider Home Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20131232.png)
+- [Nearby Captains](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20143019.png)
+- [Location Tracking](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20132846.png)
 
--[Captain Login Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20124124.png)
+**Mobile View:**
 
--[Location Search Suggestions](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20132540.png)
+- [Waiting For Captain](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20132927.png)
+- [Sharing OTP](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133010.png)
+- [Live Ride Location After Ride Started](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133103.png)
+- [Location Tracing](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133112.png)
+- [Ride Details After Completion](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133123.png)
 
--[Rider Home Page](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20131232.png)
+---
 
--[Nearby Captains](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20143019.png)
+## 🔒 Security Features
 
--[location tracking](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20132846.png)
+- Password hashing with bcrypt
+- JWT-based authentication
+- HTTP-only cookies for session management
+- Protected API routes with middleware
+- Input validation and sanitization
+- CORS configuration for secure cross-origin requests
 
-## Mobile View:
+## 🎯 Future Enhancements
 
--[waiting For Captain](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20132927.png)
-
--[sharing OTP](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133010.png)
-
--[Live Ride location after ride started](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133103.png)
-
--[Location Tracing](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133112.png)
-
--[Ride Details after completion](https://github.com/Vidhi-0603/UberClone/blob/main/Screenshot%202025-09-27%20133123.png)
+- [ ] Payment gateway integration
+- [ ] Ride rating and review system
+- [ ] Push notifications
+- [ ] Ride scheduling
+- [ ] Multi-stop rides
+- [ ] Ride sharing options
 
 ---
 
 ## Author
 
-[Vidi-0603](https://github.com/Vidhi-0603)
+[Vidhi-0603](https://github.com/Vidhi-0603)
+
+---
+
+## 🙏 Acknowledgments
+
+- [Leaflet](https://leafletjs.com/) - Open-source mapping library
+- [Geoapify](https://www.geoapify.com/) - Free geocoding and routing APIs
+- [Socket.IO](https://socket.io/) - Real-time communication
+- Inspired by Uber's ride-hailing platform
 
 ---
 
@@ -243,13 +307,9 @@ MIT
 ## Getting Started
 
 1. Clone the repository.
-2. Set up `.env` files in both `Backend` and `Frontend` folders with your Google Maps API key and MongoDB URI.
+2. Set up `.env` files in both `Backend` and `Frontend` folders with your **Geoapify API key** and **MongoDB URI**.
 3. Install dependencies in both folders:
-   ```
+   ```bash
    cd Backend && npm install
    cd ../Frontend && npm install
    ```
-4. Start backend and frontend servers.
-5. Open the frontend in your browser and start booking rides!
-
----
