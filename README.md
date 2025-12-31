@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 # 🚗 RideNow
 
 A full-featured ride-hailing application built with the MERN stack that replicates core Uber functionalities. RideNow allows users to book rides and captains (drivers) to accept and fulfill ride requests in real-time with live location tracking and interactive maps.
