@@ -19,6 +19,10 @@ const Home = () => {
   const [pickupCoords, setPickupCoords] = useState(null);
   const [destination, setDestination] = useState("");
   const [destinationCoords, setDestinationCoords] = useState(null);
+  const [riderPosition, setRiderPosition] = useState({
+    lat: 28.6139,
+    lng: 77.209,
+  });
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [vehiclePanelOpen, setVehiclePanelOpen] = useState(false);
@@ -224,10 +228,13 @@ const Home = () => {
   };
 
   const handlePickupChange = async (e) => {
-    setPickup(e.target.value);
+    const value = e.target.value;
+    setPickup(value);
+
+    if (!riderPosition || value.length < 3) return;
     try {
       const response = await axiosInstance.get("/maps/get-suggestions", {
-        params: { address: e.target.value },
+        params: { address: value, lat: riderPosition.lat, lng: riderPosition.lng },
       });
       setPickupSuggestions(response.data);
     } catch (err) {
@@ -347,6 +354,8 @@ const Home = () => {
           <RiderMap
             user={user}
             ride={ride}
+            riderPosition={riderPosition}
+            setRiderPosition={setRiderPosition}
             nearbyCaptains={nearbyCaptains}
             showCaptains={showCaptains}
             captainFound={captainFound}
@@ -485,6 +494,8 @@ const Home = () => {
             <RiderMap
               user={user}
               ride={ride}
+              riderPosition={riderPosition}
+              setRiderPosition={setRiderPosition}
               nearbyCaptains={nearbyCaptains}
               showCaptains={showCaptains}
               captainFound={captainFound}

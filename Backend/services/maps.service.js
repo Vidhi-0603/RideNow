@@ -44,7 +44,26 @@ export const getDistanceAndTime = async (origin, destination) => {
   }
 };
 
-export const getSuggestions = async (address) => {
+const getDistance = (lat1, lon1, lat2, lon2) => {
+  //convert GPS coords (degrees) to radians
+  const toRad = (v) => (v * Math.PI) / 180;
+  const R = 6371; // Earth's average radius in km
+
+  //difference in both latitudes and longitudes
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  //angular distance between two points on earth
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+  //convert angular distance into kms
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+
+export const getSuggestions = async (address, userLat, userLng) => {
   if (!address) {
     throw new Error("query is required");
   }
@@ -57,13 +76,27 @@ export const getSuggestions = async (address) => {
   try {
     const res = await axios.get(url);
 
-    if (!res.data || !res.data.features) return [];
+    if (!res.data || !res.data?.features) return [];
 
-    return res.data.features.map((feature) => ({
-      description: feature.properties.formatted,
-      lat: feature.properties.lat,
-      lng: feature.properties.lon,
-    }));
+    const places = res.data.features.map((f) => {
+      const lat = f.properties.lat;
+      const lng = f.properties.lon;
+
+      return {
+        description: f.properties.formatted,
+        lat,
+        lng,
+        distance: userLat && userLng ? getDistance(userLat, userLng, lat, lng) : null,
+      };
+    });
+
+    // return res.data.features.map((feature) => ({
+    //   description: feature.properties.formatted,
+    //   lat: feature.properties.lat,
+    //   lng: feature.properties.lon,
+    // }));
+
+    return places.sort((a,b)=> a.distance - b.distance)
   } catch (err) {
     console.error("Geoapify error:", err);
     return [];

@@ -2,8 +2,10 @@ import express from "express";
 import { authCaptain, authUser } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 import { query } from "express-validator";
-import { getAutoCompleteSuggestions, getDistanceTime } from "../controllers/maps.controller.js";
-
+import {
+  getAutoCompleteSuggestions,
+  getDistanceTime,
+} from "../controllers/maps.controller.js";
 
 router.get(
   "/get-distance-time",
@@ -36,20 +38,31 @@ router.get(
       .toFloat(),
   ],
   authCaptain,
-  getDistanceTime
+  getDistanceTime,
 );
 
 router.get(
   "/get-suggestions",
   authUser,
   [
-    query("address").notEmpty().withMessage("Address is required"),
     query("address")
+      .notEmpty()
+      .withMessage("Address is required")
       .isString()
       .isLength({ min: 3 })
-      .withMessage("Address must be 3 characters long"),
+      .withMessage("Address must be at least 3 characters long"),
+
+    query("lat")
+      .optional()
+      .isFloat({ min: -90, max: 90 })
+      .withMessage("Invalid latitude"),
+
+    query("lng")
+      .optional()
+      .isFloat({ min: -180, max: 180 })
+      .withMessage("Invalid longitude"),
   ],
-  getAutoCompleteSuggestions
+  getAutoCompleteSuggestions,
 );
 
 export default router;

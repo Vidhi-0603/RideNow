@@ -5,22 +5,14 @@ import blacListTokenModel from "../models/blacklist.model.js";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-  // const origin = req.headers.origin;
-  // res.header("Access-Control-Allow-Origin", origin);
-  // res.header("Access-Control-Allow-Credentials", "true");
-
   const { accessToken } = req.cookies;
-  console.log(accessToken, "auth me");
-
   if (!accessToken) {
-    return res.status(401).json({ message: "Unauthorized hehehe" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   const isBlacklisted = await blacListTokenModel.findOne({
     token: accessToken,
   });
-  console.log(isBlacklisted, "auth me");
-
   if (isBlacklisted) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -32,6 +24,5 @@ router.get("/", async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 });
-
 
 export default router;

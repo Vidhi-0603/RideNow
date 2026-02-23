@@ -12,10 +12,9 @@ const CheckAuth = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        
         if (role === "user") {
-          const { data } = await axiosInstance.get("/user/profile");
-          console.log(data.user,"userrrrrrr");
-          
+          const { data } = await axiosInstance.get("/user/profile");          
           setUser(data.user);
         }
       } catch (err) {

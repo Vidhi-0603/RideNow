@@ -16,6 +16,8 @@ const defaultIcon = L.icon({
 const RiderMap = ({
   ride = null,
   user,
+  riderPosition,
+  setRiderPosition,
   nearbyCaptains = [],
   showCaptains = false,
   captainFound = false,
@@ -26,10 +28,6 @@ const RiderMap = ({
 }) => {
   const { socket } = useContext(SocketDataContext);
 
-  const [riderPosition, setriderPosition] = useState({
-    lat: 28.6139,
-    lng: 77.209,
-  });
   const [driverPosition, setDriverPosition] = useState(null);
   const [routeCoords, setRouteCoords] = useState(null);
 
@@ -46,10 +44,10 @@ const RiderMap = ({
 
   //Initialize Leaflet Map
   useEffect(() => {
-    if (!mapRef.current && riderRef.current) {
+    if (!mapRef.current && riderRef.current && riderPosition) {
       mapRef.current = L.map(riderRef.current).setView(
-        riderPosition || { lat: 28.6139, lng: 77.209 },
-        16
+        [riderPosition.lat, riderPosition.lng] || [28.6139, 77.209],
+        16,
       );
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -57,12 +55,12 @@ const RiderMap = ({
         attribution: "&copy; OpenStreetMap contributors",
       }).addTo(mapRef.current);
     }
-  }, []);
+  }, [riderPosition]);
 
   //live user location
   useEffect(() => {
     if (!user || !navigator.geolocation) return;
-    socket.emit("join", { userId: user._id, userType: "user" });
+    // socket.emit("join", { userId: user._id, userType: "user" });
 
     let bestAccuracy = Infinity;
     const handlePos = (pos) => {
@@ -75,7 +73,7 @@ const RiderMap = ({
       // Only update if accuracy is better than last known
       if (accuracy < bestAccuracy) {
         bestAccuracy = accuracy;
-        setriderPosition({ lat: latitude, lng: longitude });
+        setRiderPosition({ lat: latitude, lng: longitude });
       }
     };
 
@@ -105,6 +103,7 @@ const RiderMap = ({
   //Rider Marker
   useEffect(() => {
     if (!mapRef.current) return;
+    if (!riderPosition) return;
     if (ConfirmRide) {
       if (markersRef.current.rider) {
         mapRef.current.removeLayer(markersRef.current.rider);
@@ -115,15 +114,21 @@ const RiderMap = ({
 
     if (!ConfirmRide && !captainFound) {
       if (!markersRef.current.rider) {
-        markersRef.current.rider = L.marker(riderPosition, {
-          icon: defaultIcon,
-        })
+        markersRef.current.rider = L.marker(
+          [riderPosition.lat, riderPosition.lng],
+          {
+            icon: defaultIcon,
+          },
+        )
           .addTo(mapRef.current)
           .bindPopup("You");
       } else {
-        markersRef.current.rider.setLatLng(riderPosition);
+        markersRef.current.rider.setLatLng([
+          riderPosition.lat,
+          riderPosition.lng,
+        ]);
       }
-      mapRef.current.panTo(riderPosition);
+      mapRef.current.panTo([riderPosition.lat, riderPosition.lng]);
     }
   }, [riderPosition, captainFound, ConfirmRide]);
 
