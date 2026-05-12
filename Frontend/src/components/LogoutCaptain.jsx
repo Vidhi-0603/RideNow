@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { logoutCaptain } from "../api/captainAuth.api.js";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import { CaptainDataContext } from "../context/CaptainContext.jsx";
+
 
 const LogoutCaptain = (props) => {
   const logoutRef = useRef(null);
   const navigate = useNavigate();
+    const { captain } = useContext(CaptainDataContext);
+
   const handleLogout = async () => {
-    const data = await logoutCaptain();
+    const data = await logoutCaptain(captain._id);
     console.log(data, "logout done!");
     navigate("/");
   };

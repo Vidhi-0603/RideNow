@@ -90,12 +90,6 @@ export const getSuggestions = async (address, userLat, userLng) => {
       };
     });
 
-    // return res.data.features.map((feature) => ({
-    //   description: feature.properties.formatted,
-    //   lat: feature.properties.lat,
-    //   lng: feature.properties.lon,
-    // }));
-
     return places.sort((a,b)=> a.distance - b.distance)
   } catch (err) {
     console.error("Geoapify error:", err);
@@ -121,6 +115,7 @@ export const getCaptainsInTheRadius = async (
       },
     },
     "vehicle.vehicleType": vehicleType,
+    "status": "active"
   });
 
   return captains;

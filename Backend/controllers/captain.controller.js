@@ -27,7 +27,7 @@ export const registerCaptain = async (req, res, next) => {
     color,
     plate,
     capacity,
-    type
+    type,
   );
   const token = captain.generateAuthToken();
   res.cookie("accessToken", token, cookieOptions);
@@ -51,6 +51,8 @@ export const loginCaptain = async (req, res, next) => {
   const isMatch = await captain.comparePassword(password);
   if (!isMatch)
     return res.status(401).json({ meaasge: "Invalid email or password!" });
+  captain.status = "active";
+  await captain.save();
 
   const token = captain.generateAuthToken();
   res.cookie("accessToken", token, cookieOptions);
@@ -66,13 +68,19 @@ export const getCaptainProfile = async (req, res, next) => {
 };
 
 export const logoutCaptain = async (req, res, next) => {
-  res.clearCookie("accessToken");
+  const { captainId } = req.body;
+
+  const captain = await captainModel.findByIdAndUpdate(
+    captainId,
+    { status: "inactive" },
+    { new: true },
+  );
+
+  console.log(captain, "see the inactive status");
   const { accessToken } = req.cookies;
-
-  const newToken = new blacListTokenModel({
-    token: accessToken,
-  });
-  await newToken.save();
-
+  if (accessToken) {
+    await blacListTokenModel.create({ token: accessToken });
+  }
+  res.clearCookie("accessToken");
   res.status(200).json({ message: "Logged out captain!" });
 };

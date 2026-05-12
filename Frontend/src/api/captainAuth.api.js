@@ -19,7 +19,7 @@ export const loginCaptain = async ({email, password }) => {
     const { data } = await axiosInstance.post("/captain/login", { email, password, role:'captain' });    
     return data;
 }
-export const logoutCaptain = async () => {
-    const { data } = await axiosInstance.post("/captain/logout");
+export const logoutCaptain = async (captainId) => {
+    const { data } = await axiosInstance.post("/captain/logout", { captainId });
     return data;
 }
